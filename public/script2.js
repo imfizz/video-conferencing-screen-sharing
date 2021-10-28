@@ -8,6 +8,8 @@ const peer = new Peer(undefined, {
 const myVideo = document.querySelector('#myVideo');
 const peers = {} // dito iistore yung userId ng nagleave
 
+var currentPeer; // for screen sharing
+
 peer.on('open', id => {
     socket.emit('join-room', ROOM_ID, id);
 });
@@ -32,6 +34,7 @@ navigator.mediaDevices.getUserMedia({
         // sinasagot natin yung call, pero di natin hinahayaan tanggapin yung ibang video stream
         call.on('stream', userVideoStream => {
             addVideoStream(video, userVideoStream);
+            currentPeer = call.peerConnection; // for screen sharing
         })
     })
 
@@ -53,6 +56,44 @@ socket.on('user-disconnected', userId => {
 });
 
 
+
+document.querySelector('#shareScreen').addEventListener('click', e => {
+    navigator.mediaDevices.getDisplayMedia({
+        video: {
+            cursor: "always"
+        },
+        audio: {
+            echoCancellation: true,
+            noiseSuppression: true
+        }
+    })
+    .then( stream => {
+        // replace camera video with SCREEN SHARE VIDEO
+        let videoTrack = stream.getVideoTracks()[0];
+
+        // when stop sharing, replace SCREEN SHARE VIDEO with Camera Video
+        videoTrack.onended = () => {
+            stopScreenShare();
+        }
+
+        let sender = currentPeer.getSenders().find( s => {
+            return s.track.kind = videoTrack.kind;
+        });
+
+        sender.replaceTrack(videoTrack);
+    });
+});
+
+function stopScreenShare(){
+    let videoTrack = myStream.getVideoTracks()[0];
+    var sender = currentPeer.getSenders().find( s => {
+        return s.track.kind == videoTrack.kind;
+    });
+
+    sender.replaceTrack(videoTrack);
+}
+
+
 // get the current video stream of creator
 function connectToNewUser(userId, stream){
     const call = peer.call(userId, stream); // we will call to send them our video stream
@@ -61,6 +102,7 @@ function connectToNewUser(userId, stream){
     call.on('stream', userVideoStream => {
         // so ngayon, yung video na sinend nila gawan mo ng video tag
         addVideoStream(video, userVideoStream);
+        currentPeer = call.peerConnection; // for screen sharing
     });
 
     // pag tinapos yung tawag, burahin mo lang yung video

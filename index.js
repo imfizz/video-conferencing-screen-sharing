@@ -16,10 +16,7 @@ app.get('/', (req, res) => {
 app.get('/:roomId', (req, res) => {
     res.render('main', { roomId: req.params.roomId }) // redirect to main.ejs file
 })
-
-
-
-
+ 
 
 
 io.on('connection', socket => {
