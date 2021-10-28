@@ -1,12 +1,14 @@
 const socket = io('/');
 
-const peer = new Peer(undefined, {
-    host: '/',
-    port: '3000'
-});
+// const peer = new Peer(undefined, {
+//     host: '/',
+//     port: '3000'
+// });
 
+const peer = new Peer();
+let myStream; // for screen sharing
 const myVideo = document.querySelector('#myVideo');
-const peers = {} // dito iistore yung userId ng nagleave
+const peers = {}; // dito iistore yung userId ng nagleave
 
 var currentPeer; // for screen sharing
 
@@ -19,6 +21,7 @@ navigator.mediaDevices.getUserMedia({
     video: true,
     audio: true
 }).then(stream => {
+    myStream = stream;
     const video = document.createElement('video');
     addVideoStream(video, stream);
 
@@ -30,7 +33,6 @@ navigator.mediaDevices.getUserMedia({
         // sagutin mo yung tawag tapos isend mo sakanila yung stream
         call.answer(stream);
 
-        const video = document.createElement('video');
         // sinasagot natin yung call, pero di natin hinahayaan tanggapin yung ibang video stream
         call.on('stream', userVideoStream => {
             addVideoStream(video, userVideoStream);
@@ -82,7 +84,7 @@ document.getElementById('shareScreen').addEventListener('click', e => {
             return s.track.kind = videoTrack.kind;
         });
 
-        sender.replaceTrack(videoTrack)
+        sender.replaceTrack(videoTrack);
     })
     .catch( err => {
         console.log("Unable to get display media" + err);
@@ -104,6 +106,7 @@ function stopScreenShare(){
 function connectToNewUser(userId, stream){
     const call = peer.call(userId, stream); // we will call to send them our video stream
     const video = document.createElement('video');
+    myStream = stream; // for screen sharing
     // when they send back their video stream, stream ang tawag don
     call.on('stream', userVideoStream => {
         // so ngayon, yung video na sinend nila gawan mo ng video tag
