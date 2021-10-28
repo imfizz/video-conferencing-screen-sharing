@@ -34,7 +34,7 @@ navigator.mediaDevices.getUserMedia({
         // sinasagot natin yung call, pero di natin hinahayaan tanggapin yung ibang video stream
         call.on('stream', userVideoStream => {
             addVideoStream(video, userVideoStream);
-            currentPeer = call.peerConnection; // for screen sharing
+            currentPeer = call.peerConnection; // for screensharing
         })
     })
 
@@ -57,10 +57,12 @@ socket.on('user-disconnected', userId => {
 
 
 
-document.querySelector('#shareScreen').addEventListener('click', e => {
+// for screen sharing
+document.getElementById('shareScreen').addEventListener('click', e => {
+    // to get screen share
     navigator.mediaDevices.getDisplayMedia({
-        video: {
-            cursor: "always"
+        video: { 
+            cursor: "always" 
         },
         audio: {
             echoCancellation: true,
@@ -80,10 +82,14 @@ document.querySelector('#shareScreen').addEventListener('click', e => {
             return s.track.kind = videoTrack.kind;
         });
 
-        sender.replaceTrack(videoTrack);
-    });
+        sender.replaceTrack(videoTrack)
+    })
+    .catch( err => {
+        console.log("Unable to get display media" + err);
+    })
 });
 
+// stop screen sharing
 function stopScreenShare(){
     let videoTrack = myStream.getVideoTracks()[0];
     var sender = currentPeer.getSenders().find( s => {
@@ -102,7 +108,7 @@ function connectToNewUser(userId, stream){
     call.on('stream', userVideoStream => {
         // so ngayon, yung video na sinend nila gawan mo ng video tag
         addVideoStream(video, userVideoStream);
-        currentPeer = call.peerConnection; // for screen sharing
+        currentPeer = call.peerConnection; // for screensharing
     });
 
     // pag tinapos yung tawag, burahin mo lang yung video
